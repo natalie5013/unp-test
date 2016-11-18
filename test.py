@@ -1,6 +1,6 @@
 import sys, csv
-import msvcrt
-        
+# import msvcrt
+
 def is_number(s):
     try:
         float(s)
@@ -8,53 +8,83 @@ def is_number(s):
     except ValueError:
         return False
 
+class KeyTableReader:
 
-answers = []
 
-for i in range(90):
-	answers.append(0)
+	def __init__(self, filename):
+		self.keys = []
+		for i in range(90):
+			self.keys.append(0)
 
-with open('test-unp2.csv', 'rb') as csvfile:
-	reader = csv.reader(csvfile, delimiter=';')
-	for row in reader:
-		for i in range(3):
-			yes = row[i*3+1]
-			no = row[i*3+2]
-			# if yes.isnumeric():
-				# yes = int(yes) 
-			if is_number(yes):
-				yes = int(yes) 
-			if is_number(no):
-				no = int(no) 
-			# if no.isnumeric():
-				# no = int(no) 
-			a = {'num': int(row[i*3]), 'yes': yes, 'no': no}
-			num = a['num']
-			#print num	
-			answers[num-1] = a
+		csvfile = open(filename, 'rb')
+		rows = csv.reader(csvfile, delimiter=';')
+		for row in rows:
+			for i in range(3):
+				# row: 5;2;2;35;8;-2;65;1;-3
+				num = int(row[i*3+0])
+				yes =     row[i*3+1]
+				no =      row[i*3+2]
+				# 5;2;2
+				if is_number(yes):
+					yes = int(yes) 
+				if is_number(no):
+					no = int(no) 
+				a = {'num': num, 'yes': yes, 'no': no}
+				num = a['num']
+				# print a
+				self.keys[num-1] = a
 
-for a in answers:
-	print 'answer: ', a
+		for i in range(len(self.keys)):
+			k = self.keys[i]
+			if k == 0:
+				print 'ERROR: MISSING KEY: ', (i+1)
 
-result = 0
+class AnketaReader:
 
-for i in range(1, 90, 2):
-	a = answers[i]
-	sys.stdout.write('Question ' + str(a['num']) + ': \r')
-	ch = msvcrt.getch()
-	if ch == 'x' or ch == 'q':
-		exit(0)
-	delta = 0
-	ans = ''		
-	if ch == 'y' or ch == '[':
-		delta = a['yes']
-		ans = 'YES'
-	elif ch == 'n' or ch == ']':
-		delta = a['no']
-		ans = 'NO '
-	
-	if is_number(delta):
-		result = result + delta
-		sys.stdout.write('Question ' + str(a['num']) + ': result: '  + ' ' + str(result) + ' ' + str(ans) + '(' + str(delta) + ')                           \r')
-	else:
-		print 'DELTA: ', delta		
+	def __init__(self, filename):
+		file = open(filename, 'rb')
+		self.answers = []
+		lines = file.readlines()
+		for line in lines:
+			line = line.strip()
+			# print line
+			if len(line) > 0:
+				if line == 'y':
+					# print 'YES'
+					self.answers.append(True)
+				elif line == 'n':
+					# print 'NO'
+					self.answers.append(False)
+				else:
+					print 'ERROR: ', line
+
+
+class Processor:
+
+	def process(self, anketa, keytab):
+		result = 0
+		for i in range(len(anketa.answers)):
+			a = anketa.answers[i]
+			k = keytab.keys[i]
+			if a:
+				res = k['yes']					
+			else:
+				res = k['no']					
+
+			# print str(i), ': ', a, k, res
+			
+			if is_number(res):
+				result += res
+				print str(i+1), ': ', a, k, '\t', res, '\t', result
+			# else:
+				# print str(i+1), ': ', a, k, 'missed'
+		return result
+				
+keytab = KeyTableReader('test-unp4.csv')
+anketa = AnketaReader('anketa1')
+
+processor = Processor()
+
+res = processor.process(anketa, keytab)
+print 'result: ', res
+
