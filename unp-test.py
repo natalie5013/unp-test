@@ -75,16 +75,44 @@ class Processor:
 			
 			if is_number(res):
 				result += res
-				print str(i+1), ': ', a, k, '\t', res, '\t', result
+				# print str(i+1), ': ', a, k, '\t', res, '\t', result
 			# else:
 				# print str(i+1), ': ', a, k, 'missed'
 		return result
+
+def usage():
+	print 'Usage:'
+	print '  m/w file'
+	sys.exit()
+
 				
-keytab = KeyTableReader('test-unp4.csv')
-anketa = AnketaReader('anketa1')
+keytab1 = KeyTableReader('test-unp1.csv')
+keytab2 = KeyTableReader('test-unp2.csv')
+keytab3 = KeyTableReader('test-unp3.csv')
+keytab4 = KeyTableReader('test-unp4.csv')
+
+man = [keytab1, keytab3]
+woman = [keytab2, keytab4]
 
 processor = Processor()
 
-res = processor.process(anketa, keytab)
-print 'result: ', res
+if len(sys.argv) <= 2:
+	usage()
+
+if sys.argv[1] == 'm':
+	keytabs = man
+elif sys.argv[1] == 'w':
+	keytabs = woman
+else:
+	usage()
+
+filename = sys.argv[2]
+
+anketa = AnketaReader(filename)
+
+res1 = processor.process(anketa, keytabs[0])
+res2 = processor.process(anketa, keytabs[1])
+
+print '  neurotic   : ', res1
+print '  psychopatic: ', res2
 
